@@ -48,10 +48,10 @@
     (number? res) res
     (bytes? res) (get-string-or-unserialize-clj-data res)
     ;; XXX: should we protect against recursion here?
-    ;; RESP3 map replies (e.g. HGETALL) are KeyValue pairs
     (instance? java.util.List res)
     (into []
           (mapcat (fn [item]
+                    ;; RESP3 map replies (e.g. HGETALL) are KeyValue pairs
                     (if (instance? KeyValue item)
                       [(deserialize (KeyValue/.getKey ^KeyValue item))
                        (deserialize (KeyValue/.getValue ^KeyValue item))]
