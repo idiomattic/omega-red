@@ -73,6 +73,14 @@
   (is (= #{"x" {:foo 1}} (set (redis/execute (tu/conn) [:smembers "test.some.set"]))))
   (is (= #{"x" {:foo 1}} (set (first (redis/execute-pipeline (tu/conn) [[:smembers "test.some.set"]]))))))
 
+(deftest nested-reply-test
+  (testing "scan replies with [cursor [key ...]] - the nested list is not flattened"
+    (redis/execute (tu/conn) [:set "test.scan.a" "1"])
+    (redis/execute (tu/conn) [:set "test.scan.b" "2"])
+    (let [[cursor ks] (redis/execute (tu/conn) [:scan "0" :match "test.scan.*" :count "100"])]
+      (is (= "0" cursor))
+      (is (= #{"test.scan.a" "test.scan.b"} (set ks))))))
+
 (deftest clj-data-test
   (testing "get set del with a clojure map"
     (is (= 0 (redis/execute (tu/conn) [:exists "test.some.key"])))
